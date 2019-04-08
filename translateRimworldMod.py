@@ -40,9 +40,10 @@ xmlEnd = """
 </LanguageData>"""
 
 tag = ""
-with open("translateTag.txt") as file:
-	tag = file.read() + "."
-	print(f"Tag is {tag}")
+if os.path.exists ("translateTag.txt"):
+	with open("translateTag.txt") as file:
+		tag = file.read() + "."
+		print(f"Tag is {tag}")
 	
 	
 #Find already-used strings from Core English translations
