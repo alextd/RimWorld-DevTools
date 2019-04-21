@@ -22,8 +22,9 @@
 #
 
 try:
-	import typewrite
+	import pyautogui
 except:
+	print("No typewrite!")
 	pass
 import os
 import sys
@@ -146,20 +147,26 @@ def process(line, outfile):
 	if "ContentFinder" in line: return line
 	if "Resources" in line: return line
 	if "typeof" in line: return line
+	if line.strip().startswith("//"): return line
+	if line.strip().startswith("/*"): return line
 	
 	matchRE = matchQuoteRE
 	match = re.search(matchRE, line)
 	while match is not None:
 		thisTag = tag
-		str = match.group(2)
-		if str == "": break
+		ostr = match.group(2)
+		if ostr == "": break
+		
+		str = ostr
 		
 		#find {value} formats
 		formatVars = re.findall(matchFmtRE, str)
 		if len(formatVars) > 0:
 			(str, _) = re.subn(matchFmtRE, NextFmt(), str)
 		
-		if str in stringCodes:
+		if ostr in noTrStrings:
+			translateStr="" #Act as if input skipped
+		elif str in stringCodes:
 			#Already made it 
 			print (f"  --  Using previous tag for {str}")
 			translateStr = stringCodes[str]
@@ -168,40 +175,37 @@ def process(line, outfile):
 			thisTag = ""
 			translateStr = coreTr[str]
 		else:
-			if str in noTrStrings:
-				translateStr="" #Act as if input skipped
+			#Ask for input, what goes in <TrTag>
+			print ("")
+			print (line.strip())
+			print ("")
+			
+			#insert suggestion
+			if str.lower() in coreTr or str.lower().capitalize() in coreTr:
+				print("NOTE: (lower-case version is in Core)");
 			else:
-				#Ask for input, what goes in <TrTag>
-				print ("")
-				print (line.strip())
-				print ("")
+				try:
+					pyautogui.typewrite(makeXmlTag(str))
+				except:
+					pass
+			translateStr = input('"' + str + '"\n:')
 				
-				#insert suggestion
-				if str.lower() in coreTr or str.lower().capitalize() in coreTr:
-					print("NOTE: (lower-case version is in Core)");
-				else:
-					try:
-						pyautogui.typewrite(makeXmlTag(str))
-					except:
-						pass
-				translateStr = input('"' + str + '"\n:')
+		if len(translateStr) > 0 and translateStr != "n":
+			#Apply translation, write to xml
+			stringCodes[str] = translateStr
+			print ("	<{2}{0}>{1}</{2}{0}>".format(translateStr, escape(str), thisTag), file=outfile)
+		else:
+			#No translation
+			if translateStr == "n":
+				#Never translate, write to file
+				noTrF.write(ostr + "\n")
+				noTrStrings.append(ostr)
 				
-			if len(translateStr) > 0 and translateStr != "n":
-				#Apply translation, write to xml
-				stringCodes[str] = translateStr
-				print ("	<{2}{0}>{1}</{2}{0}>".format(translateStr, escape(str), thisTag), file=outfile)
-			else:
-				#No translation
-				if translateStr == "n":
-					#Never translate, write to file
-					noTrF.write(str + "\n")
-					noTrStrings.append(str)
-					
-				#But there might be more on the same line, so:
-				#directly add the untranslated string to the RE to match the next quote instead
-				matchRE = re.compile("("+re.escape(match.group(1) + '"' + match.group(2) + '"') + matchString[1:])
-				match = re.search(matchRE, line)
-				continue
+			#But there might be more on the same line, so:
+			#directly add the untranslated string to the RE to match the next quote instead
+			matchRE = re.compile("("+re.escape(match.group(1) + '"' + ostr + '"') + matchString[1:])
+			match = re.search(matchRE, line)
+			continue
 				
 		#replace line in code with "...".Translate()
 		line = re.sub(matchRE, r'\1"{1}{0}".Translate({2})\3'.format(translateStr, thisTag, ", ".join(formatVars)), line)
