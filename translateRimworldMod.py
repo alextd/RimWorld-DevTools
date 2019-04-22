@@ -57,7 +57,13 @@ for dname, dirs, files in os.walk("Core/Languages/English/Keyed"):
 			for line in f.readlines():
 				match = re.search(coreTrRE, line)
 				if match is not None:
-					coreTr[match.group(2)]= match.group(1)
+					#Add this Core string
+					if match.group(2) in coreTr:
+						if len(coreTr[match.group(2)]) <= len(match.group(1)):
+							#Use previous match, shorter.
+							continue
+							
+					coreTr[match.group(2)] = match.group(1)
 
 #TODO: also walk "Mod/Langauges"?
 					
@@ -164,6 +170,8 @@ def process(line, outfile):
 		if len(formatVars) > 0:
 			(str, _) = re.subn(matchFmtRE, NextFmt(), str)
 		
+		#Find translateStr to insert
+		translateStr = None
 		if ostr in noTrStrings:
 			translateStr="" #Act as if input skipped
 		elif str in stringCodes:
@@ -171,10 +179,20 @@ def process(line, outfile):
 			print (f"  --  Using previous tag for {str}")
 			translateStr = stringCodes[str]
 		elif str in coreTr:
-			print (f"  --  Using Core: <{coreTr[str]}>{str}<{coreTr[str]}>")
-			thisTag = ""
-			translateStr = coreTr[str]
-		else:
+			print ("")
+			print (line.strip())
+			try:
+				pyautogui.typewrite("y")
+			except:
+				pass
+			if input(f'Use Core <{coreTr[str]}> for "{str}"? (y)\n:') == "y":			
+				thisTag = ""
+				translateStr = coreTr[str]
+		
+		#Ask user for translateStr
+		newStr = False
+		if translateStr is None:
+			newStr = True
 			#Ask for input, what goes in <TrTag>
 			print ("")
 			print (line.strip())
@@ -189,12 +207,9 @@ def process(line, outfile):
 				except:
 					pass
 			translateStr = input('"' + str + '"\n:')
-				
-		if len(translateStr) > 0 and translateStr != "n":
-			#Apply translation, write to xml
-			stringCodes[str] = translateStr
-			print ("	<{2}{0}>{1}</{2}{0}>".format(translateStr, escape(str), thisTag), file=outfile)
-		else:
+		
+		#Insert translateStr into the line
+		if len(translateStr) == 0 or translateStr == "n":
 			#No translation
 			if translateStr == "n":
 				#Never translate, write to file
@@ -206,6 +221,11 @@ def process(line, outfile):
 			matchRE = re.compile("("+re.escape(match.group(1) + '"' + ostr + '"') + matchString[1:])
 			match = re.search(matchRE, line)
 			continue
+		
+		if newStr:
+			#Apply translation, write to xml
+			stringCodes[str] = translateStr
+			print ("	<{2}{0}>{1}</{2}{0}>".format(translateStr, escape(str), thisTag), file=outfile)
 				
 		#replace line in code with "...".Translate()
 		line = re.sub(matchRE, r'\1"{1}{0}".Translate({2})\3'.format(translateStr, thisTag, ", ".join(formatVars)), line)
