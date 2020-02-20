@@ -2,12 +2,19 @@
 # Build your 1.1 mod as if it only supported 1.1
 # Then use this tool to make the release version for 1.1/1.0
 #
+# The basic target structure is for all 1.0 files to go in the root Mod/
+# Any new or changed content ends up in Mod/1.1
+#  (And in the future , 1.2 as well?)
+#
 #  python squashRelease.py Version ModNew ModOld
 #  (python3 of course)
 #
-# This tool squashes a 1.1 mod folder and a 1.0 mod folder to make a dual-version mod folder.
-# New or changed files are put in Mod/1.1/, old identical files are kept in Mod/
-# The resulting 1.1 folder should have a suitable release for 1.1/1.0 with only necessary copies.
+# This tool squashes a 1.1-only mod folder and a 1.0 mod folder to make a dual-version mod folder.
+# Unchanged files are kept in NewMod/
+# New files are put in NewMod/1.1/
+# Changed files also go in NewMod/1.1/
+# - The old 1.0 versions are coped in from OldMod/ to NewMod/ since that's where 1.0 will look.
+# The resulting NewMod folder should have a suitable release for 1.1/1.0 with no duplicate copies.
 #
 # The entire About/ folder is simply taken from 1.1 and 1.0 is ignored.
 # (But this does grab PublishedFileId.txt from 1.0 so 1.1 can be updated on Steam)
@@ -16,7 +23,7 @@
 #
 # TODO: 1.2 and above, using LoadFolders.xml to include 1.2 -> 1.1 -> /
 #  (if your mod needs 1.1 to remove a file that 1.0 had, then you can't use this script
-#   since the existence of the 1.0 file would make 1.1 use it - you need your own LoadFolders.xml)
+#   since the existence of the 1.0 file would make 1.1 use it - your own LoadFolders.xml can handle that)
 #
 ## --------------
 #
