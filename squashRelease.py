@@ -1,5 +1,6 @@
 # RimWorld mod 1.1/1.0 support.
 # Build your 1.1 mod as if it only supported 1.1
+# Keep an old 1.0 mod release as a base.
 # Then use this tool to make the release version for 1.1/1.0
 #
 # The basic target structure is for all 1.0 files to go in the root Mod/
@@ -9,11 +10,11 @@
 #  python squashRelease.py Version ModNew ModOld
 #  (python3 of course)
 #
-# This tool squashes a 1.1-only mod folder and a 1.0 mod folder to make a dual-version mod folder.
+# This tool squashes a 1.1-only NewMod folder and a 1.0 OldMod folder to make a dual-version NewMod folder.
 # Unchanged files are kept in NewMod/
 # New files are put in NewMod/1.1/
 # Changed files also go in NewMod/1.1/
-# - The old 1.0 versions are coped in from OldMod/ to NewMod/ since that's where 1.0 will look.
+# - The old 1.0 versions are coped in from OldMod/ to NewMod/
 # The resulting NewMod folder should have a suitable release for 1.1/1.0 with no duplicate copies.
 #
 # The entire About/ folder is simply taken from 1.1 and 1.0 is ignored.
