@@ -36,6 +36,11 @@
 # Future 1.1 mod updates should be done with a fresh 1.1 build squashed onto the original 1.0
 # (i.e. delete ModNew and re-build)
 
+# Doesn't handle:
+# Added translation lines. That could just be added to the base folder.
+# It would be tricky to tell if it's just a newline and not a changed line.
+# So 1.1 will get a copy of translations.
+
 import os
 import sys
 import shutil
@@ -50,14 +55,19 @@ def fuckinMakeTheDirectoryOkay(outfilename):
 
 		
 def doSquash(ver, new, old):
-	print(f" Squashing {new}({ver}) onto {old}")
+	print(f"\n-Squashing {new}({ver}) onto {old}")
+	#walk the new folder, find new files or changed files
+	
+	#Let's not squash twice. It needs clean and rebuild
+	verDir = os.path.join(new, ver)
+	if os.path.exists(verDir):
+		print(f"--  !Nope! Already Squashed it.")
+		return
+	print(f"  --  New changes going into {verDir}")
 	
 	#Ah gee. First thing, get the PublishedFileId.txt
 	shutil.copy2(os.path.join(old, "About/PublishedFileId.txt"), os.path.join(new, "About/PublishedFileId.txt"))
 		
-	#walk the new folder, find new files or changed files
-	verDir = os.path.join(new, ver)
-	print(f"  --  New changes going into {verDir}")
 	for dname, dirs, files in os.walk(new):
 		#Ignore /About
 		print(f" - {dname}")
